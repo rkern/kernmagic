@@ -275,3 +275,112 @@ def magic_pop_print(self, arg):
         print_numpy_printoptions(numpy.get_printoptions())
 
 add_argparse_help(magic_pop_print, pop_print_parser)
+
+
+def print_numpy_err(modes, errcall):
+    """ Print the given numpy error modes.
+    """
+    print "Divide:    %(divide)s" % modes
+    print "Overflow:  %(over)s" % modes
+    print "Underflow: %(under)s" % modes
+    print "Invalid:   %(invalid)s" % modes
+    print "Call:      %r" % (errcall,)
+
+error_choices = ["ignore", "warn", "raise", "call", "log"]
+push_err_parser = MagicArgumentParser('push_err')
+push_err_parser.add_argument('-a', '--all', choices=error_choices, 
+    help="Set the mode for all kinds of errors.")
+push_err_parser.add_argument('-d', '--divide', choices=error_choices, 
+    help="Set the mode for divide-by-zero errors.")
+push_err_parser.add_argument('-o', '--over', choices=error_choices, 
+    help="Set the mode for overflow errors.")
+push_err_parser.add_argument('-u', '--under', choices=error_choices, 
+    help="Set the mode for underflow errors.")
+push_err_parser.add_argument('-i', '--invalid', choices=error_choices, 
+    help="Set the mode for invalid domain errors (i.e. NaNs).")
+push_err_parser.add_argument('-f', '--call-func',
+    help="A function for use with the 'call' mode or a file-like "
+        "object with a .write() method for use with the 'log' mode.")
+push_err_parser.add_argument('-n', '--no-call-func', action='store_true',
+    help="Remove any existing call function.")
+
+push_err_parser.add_argument('-q', '--quiet', action='store_true',
+    help="Do not print the new settings.")
+
+def magic_push_err(self, arg):
+    """ Set numpy numerical error handling via a stack.
+
+"""
+    try:
+        import numpy
+    except ImportError:
+        raise ipapi.UsageError("could not import numpy.")
+
+    sentinel = object()
+
+    args = push_err_parser.parse_argstring(arg)
+    kwds = {}
+    errcall = sentinel
+    for key in ['all', 'divide', 'over', 'under', 'invalid']:
+        value = getattr(args, key)
+        if value is not None:
+            kwds[key] = value
+    if args.call_func is not None:
+        if args.no_call_func:
+            raise ipapi.UsageError("You cannot specify both a --call-func and "
+                "--no-call-func at the same time.")
+        global_ns = self.shell.user_global_ns
+        local_ns = self.shell.user_ns
+        try:
+            errcall = eval(args.call_func, global_ns, local_ns)
+        except Exception, e:
+            raise ipapi.UsageError('Could not find function %r.\n%s: %s' % 
+                (args.call_func, e.__class__.__name__, e))
+    elif args.no_call_func:
+        errcall = None
+
+    old_options = numpy.geterr()
+    old_errcall = numpy.geterrcall()
+    numpy.seterr(**kwds)
+    if errcall is not sentinel:
+        try:
+            numpy.seterrcall(errcall)
+        except ValueError, e:
+            raise ipapi.UsageError(str(e))
+    stack = getattr(self, '_numpy_err_stack', [])
+    stack.append((old_options, old_errcall))
+    self._numpy_err_stack = stack
+    if not args.quiet:
+        print_numpy_err(numpy.geterr(), numpy.geterrcall())
+
+add_argparse_help(magic_push_err, push_err_parser)
+
+
+pop_err_parser = MagicArgumentParser('pop_err')
+pop_err_parser.add_argument('-q', '--quiet', action='store_true',
+    help="Do not print the new settings.")
+
+def magic_pop_err(self, arg):
+    """ Pop the last set of numpy numerical error handling settings from the
+    stack.
+
+"""
+    try:
+        import numpy
+    except ImportError:
+        raise ipapi.UsageError("could not import numpy.")
+    args = pop_err_parser.parse_argstring(arg)
+
+    stack = getattr(self, '_numpy_err_stack', [])
+    if stack:
+        kwds, errcall = stack.pop()
+        numpy.seterr(**kwds)
+        numpy.seterrcall(errcall)
+    elif not args.quiet:
+        print "At the end of the stack."
+        print
+    self._numpy_err_stack = stack
+    if not args.quiet:
+        print_numpy_err(numpy.geterr(), numpy.geterrcall())
+
+add_argparse_help(magic_pop_err, pop_err_parser)
