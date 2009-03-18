@@ -13,6 +13,8 @@ import argparse
 
 from IPython import ipapi
 
+import utils
+
 
 class MagicArgumentParser(argparse.ArgumentParser):
     """ An ArgumentParser tweaked for use by IPython magics.
@@ -384,3 +386,45 @@ def magic_pop_err(self, arg):
         print_numpy_err(numpy.geterr(), numpy.geterrcall())
 
 add_argparse_help(magic_pop_err, pop_err_parser)
+
+
+pt_parser = MagicArgumentParser('pt')
+pt_parser.add_argument('variable', help="the name of the variable")
+
+def magic_pt(self, arg):
+    """ Print the traits of an object.
+
+"""
+    try:
+        from IPython.external.pretty import pretty
+    except ImportError:
+        import pprint
+        pretty = pprint.pformat
+    args = pt_parser.parse_argstring(arg)
+
+    if args.variable not in self.user_ns:
+        try:
+            obj = eval(args.variable, self.user_global_ns, self.user_ns)
+        except Exception, e:
+            raise ipapi.UsageError('variable %r not in namespace' % args.variable)
+    else:
+        obj = self.user_ns[args.variable]
+
+    if not hasattr(obj, 'trait_names'):
+        raise ipapi.UsageError('variable %r is not a HasTraits instance' % args.variable)
+    from enthought.traits.has_traits import not_event
+    names = obj.trait_names(type=not_event)
+    names.sort()
+    key_values = []
+    for name in names:
+        try:
+            value = getattr(obj, name)
+        except AttributeError:
+            pvalue = '<undefined>'
+        else:
+            pvalue = pretty(value)
+        key_values.append((name, pvalue))
+    text = utils.wrap_key_values(key_values)
+    print text
+
+add_argparse_help(magic_pt, pt_parser)
