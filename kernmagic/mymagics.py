@@ -428,3 +428,24 @@ def magic_pt(self, arg):
     print text
 
 add_argparse_help(magic_pt, pt_parser)
+
+
+def magic_replace_context(self, parameter_s=''):
+    """Replace the IPython namespace with a DataContext.
+
+    It can be accessed as _ip.user_ns .
+    """
+    if hasattr(ip.IP.user_ns, 'subcontext'):
+        # Toggle back to plain dict.
+        user_ns = ip.IP.user_ns.subcontext
+    else:
+        from enthought.contexts.api import DataContext
+        user_ns = DataContext(subcontext=ip.IP.user_ns)
+        # Keep the plain dict as the globals.
+        ip.IP.user_global_ns = ip.IP.user_ns
+    ip.IP.user_ns = ip.user_ns = user_ns
+
+
+__all__ = ['magic_fread', 'magic_fwrite', 'magic_sym', 'magic_push_print',
+    'magic_pop_print', 'magic_push_err', 'magic_pop_err', 'magic_pt',
+    'magic_replace_context']
