@@ -1,0 +1,12 @@
+syntax: glob
+.gdb_history
+*.pyc
+*.pyo
+*.pyclbr
+*.so
+.*.swp
+.*.swo
+.*.swn
+build/
+dist/
+*.egg-info/
