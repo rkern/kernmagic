@@ -78,3 +78,64 @@ def wrap_key_values(key_values, sep=':', width=None):
             lines.append('%s%s' % (blank, vl))
     text = '\n'.join(lines)
     return text
+
+
+# Adapted from cmd.py
+def columnize(strings, displaywidth=None):
+    """ Format a list of strings as a compact set of columns.
+
+    Each column is only as wide as necessary.
+    Columns are separated by two spaces (one was not legible enough).
+    """
+    if displaywidth is None:
+        displaywidth = terminal_size()[0]
+    if not strings:
+        return ''
+    nonstrings = [i for i in range(len(strings))
+                    if not isinstance(strings[i], str)]
+    if nonstrings:
+        raise TypeError("Not strings: %r" % (nonstrings,))
+    size = len(strings)
+    if size == 1:
+        return '%s\n' % strings[0]
+    # Try every row count from 1 upwards
+    for nrows in range(1, len(strings)):
+        ncols = (size+nrows-1) // nrows
+        colwidths = []
+        totwidth = -2
+        for col in range(ncols):
+            colwidth = 0
+            for row in range(nrows):
+                i = row + nrows*col
+                if i >= size:
+                    break
+                x = strings[i]
+                colwidth = max(colwidth, len(x))
+            colwidths.append(colwidth)
+            totwidth += colwidth + 2
+            if totwidth > displaywidth:
+                break
+        if totwidth <= displaywidth:
+            break
+    else:
+        nrows = len(strings)
+        ncols = 1
+        colwidths = [0]
+    lines = []
+    for row in range(nrows):
+        texts = []
+        for col in range(ncols):
+            i = row + nrows*col
+            if i >= size:
+                x = ""
+            else:
+                x = strings[i]
+            texts.append(x)
+        while texts and not texts[-1]:
+            del texts[-1]
+        for col in range(len(texts)):
+            texts[col] = texts[col].ljust(colwidths[col])
+        lines.append('%s\n' % str('  '.join(texts)))
+    formatted = ''.join(lines)
+    return formatted
+

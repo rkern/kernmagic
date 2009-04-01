@@ -5,9 +5,12 @@ These use argparse to conveniently handle argument parsing.
     http://argparse.python-hosting.com/
 """
 
+from collections import defaultdict
+import inspect
 import os
 import shlex
 import sys
+import types
 
 import argparse
 
@@ -64,6 +67,19 @@ def add_argparse_help(magic_func, parser):
     magic_func.__doc__ += help_text
 
 
+def get_variable(ipshell, variable):
+    """ Get a variable from the shell's namespace.
+    """
+    if variable not in ipshell.user_ns:
+        try:
+            obj = eval(variable, ipshell.user_global_ns, ipshell.user_ns)
+        except Exception, e:
+            raise ipapi.UsageError('variable %r not in namespace' % variable)
+    else:
+        obj = ipshell.user_ns[variable]
+    return obj
+
+
 fwrite_parser = MagicArgumentParser('fwrite')
 fwrite_parser.add_argument('-e', '--encoding', default='utf-8',
     help="the encoding to use for unicode objects; no effect on str objects "
@@ -83,13 +99,7 @@ def magic_fwrite(self, arg):
         args.filename = args.variable
     filename = os.path.expanduser(args.filename)
 
-    if args.variable not in self.user_ns:
-        try:
-            obj = eval(args.variable, self.user_global_ns, self.user_ns)
-        except Exception, e:
-            raise ipapi.UsageError('variable %r not in namespace' % args.variable)
-    else:
-        obj = self.user_ns[args.variable]
+    obj = get_variable(self, args.variable)
     if isinstance(obj, unicode):
         obj = obj.encode(args.encoding)
     elif not isinstance(obj, str):
@@ -402,14 +412,7 @@ def magic_pt(self, arg):
         pretty = pprint.pformat
     args = pt_parser.parse_argstring(arg)
 
-    if args.variable not in self.user_ns:
-        try:
-            obj = eval(args.variable, self.user_global_ns, self.user_ns)
-        except Exception, e:
-            raise ipapi.UsageError('variable %r not in namespace' % args.variable)
-    else:
-        obj = self.user_ns[args.variable]
-
+    obj = get_variable(self, args.variable)
     if not hasattr(obj, 'trait_names'):
         raise ipapi.UsageError('variable %r is not a HasTraits instance' % args.variable)
     from enthought.traits.has_traits import not_event
@@ -430,22 +433,60 @@ def magic_pt(self, arg):
 add_argparse_help(magic_pt, pt_parser)
 
 
+pm_parser = MagicArgumentParser('pm')
+pm_parser.add_argument('-g', '--group', action='store_true',
+    help="Group by the defining class.")
+pm_parser.add_argument('-p', '--public', action='store_true',
+    help="Only display public methods that do not being with an underscore.")
+pm_parser.add_argument('variable', help="The name of the variable.")
+
+def magic_pm(self, arg):
+    """ Print the methods of an object or type.
+
+"""
+    args = pm_parser.parse_argstring(arg)
+    obj = get_variable(self, args.variable)
+    if not isinstance(obj, (type, types.ClassType)):
+        klass = type(obj)
+    else:
+        klass = obj
+    attrs = inspect.classify_class_attrs(klass)
+    grouped = defaultdict(list)
+    all = []
+    for name, kind, defining, value in attrs:
+        if kind not in ('method', 'class method', 'static method'):
+            continue
+        if not args.public or not name.startswith('_'):
+            grouped[defining].append(name)
+            all.append(name)
+    if args.group:
+        for cls in inspect.getmro(klass)[::-1]:
+            print '%s:' % getattr(cls, '__name__', repr(cls))
+            print utils.columnize(grouped[cls])
+    else:
+        print utils.columnize(all)
+
+add_argparse_help(magic_pm, pm_parser)
+
+
 def magic_replace_context(self, parameter_s=''):
     """Replace the IPython namespace with a DataContext.
 
     It can be accessed as _ip.user_ns .
     """
-    if hasattr(ip.IP.user_ns, 'subcontext'):
+    ip = ipapi.get()
+    if hasattr(self.user_ns, 'subcontext'):
         # Toggle back to plain dict.
-        user_ns = ip.IP.user_ns.subcontext
+        user_ns = self.user_ns.subcontext
     else:
         from enthought.contexts.api import DataContext
-        user_ns = DataContext(subcontext=ip.IP.user_ns)
+        user_ns = DataContext(subcontext=self.user_ns)
         # Keep the plain dict as the globals.
-        ip.IP.user_global_ns = ip.IP.user_ns
-    ip.IP.user_ns = ip.user_ns = user_ns
+        self.user_global_ns = self.user_ns
+    self.user_ns = ip.user_ns = user_ns
 
 
 __all__ = ['magic_fread', 'magic_fwrite', 'magic_sym', 'magic_push_print',
     'magic_pop_print', 'magic_push_err', 'magic_pop_err', 'magic_pt',
-    'magic_replace_context']
+    'magic_replace_context', 'magic_pm']
+
