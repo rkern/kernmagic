@@ -398,10 +398,10 @@ def magic_pop_err(self, arg):
 add_argparse_help(magic_pop_err, pop_err_parser)
 
 
-pt_parser = MagicArgumentParser('pt')
-pt_parser.add_argument('variable', help="the name of the variable")
+print_traits_parser = MagicArgumentParser('print_traits')
+print_traits_parser.add_argument('variable', help="the name of the variable")
 
-def magic_pt(self, arg):
+def magic_print_traits(self, arg):
     """ Print the traits of an object.
 
 """
@@ -410,7 +410,7 @@ def magic_pt(self, arg):
     except ImportError:
         import pprint
         pretty = pprint.pformat
-    args = pt_parser.parse_argstring(arg)
+    args = print_traits_parser.parse_argstring(arg)
 
     obj = get_variable(self, args.variable)
     if not hasattr(obj, 'trait_names'):
@@ -430,21 +430,21 @@ def magic_pt(self, arg):
     text = utils.wrap_key_values(key_values)
     print text
 
-add_argparse_help(magic_pt, pt_parser)
+add_argparse_help(magic_print_traits, print_traits_parser)
 
 
-pm_parser = MagicArgumentParser('pm')
-pm_parser.add_argument('-g', '--group', action='store_true',
+print_methods_parser = MagicArgumentParser('print_methods')
+print_methods_parser.add_argument('-g', '--group', action='store_true',
     help="Group by the defining class.")
-pm_parser.add_argument('-p', '--public', action='store_true',
+print_methods_parser.add_argument('-p', '--public', action='store_true',
     help="Only display public methods that do not being with an underscore.")
-pm_parser.add_argument('variable', help="The name of the variable.")
+print_methods_parser.add_argument('variable', help="The name of the variable.")
 
-def magic_pm(self, arg):
+def magic_print_methods(self, arg):
     """ Print the methods of an object or type.
 
 """
-    args = pm_parser.parse_argstring(arg)
+    args = print_methods_parser.parse_argstring(arg)
     obj = get_variable(self, args.variable)
     if not isinstance(obj, (type, types.ClassType)):
         klass = type(obj)
@@ -466,7 +466,7 @@ def magic_pm(self, arg):
     else:
         print utils.columnize(all)
 
-add_argparse_help(magic_pm, pm_parser)
+add_argparse_help(magic_print_methods, print_methods_parser)
 
 
 def magic_replace_context(self, parameter_s=''):
@@ -487,6 +487,10 @@ def magic_replace_context(self, parameter_s=''):
 
 
 __all__ = ['magic_fread', 'magic_fwrite', 'magic_sym', 'magic_push_print',
-    'magic_pop_print', 'magic_push_err', 'magic_pop_err', 'magic_pt',
-    'magic_replace_context', 'magic_pm']
+    'magic_pop_print', 'magic_push_err', 'magic_pop_err', 'magic_print_traits',
+    'magic_replace_context', 'magic_print_methods']
 
+aliases = dict(
+    magic_print_traits='pt',
+    magic_print_methods='pm',
+)
