@@ -2,6 +2,7 @@ import os
 import struct
 import sys
 import textwrap
+import warnings
 
 
 def terminal_size():
@@ -20,21 +21,25 @@ def _terminal_size_win32():
     available under the PSF license.
     http://code.activestate.com/recipes/440694/
     """
-    from ctypes import windll, create_string_buffer
-
     width = 80
     height = 25
+    
+    try:
+        from ctypes import windll, create_string_buffer
 
-    # FIXME: wrap with a try: except:? What exceptions might I get?
-    h = windll.kernel32.GetStdHandle(-12)
-    csbi = create_string_buffer(22)
-    res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
+        # FIXME: wrap with a try: except:? What exceptions might I get?
+        h = windll.kernel32.GetStdHandle(-12)
+        csbi = create_string_buffer(22)
+        res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
 
-    if res:
-        (bufx, bufy, curx, cury, wattr,
-         left, top, right, bottom, maxx, maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
-        width = right - left + 1
-        height = bottom - top + 1
+        if res:
+            (bufx, bufy, curx, cury, wattr,
+             left, top, right, bottom, maxx, maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
+            width = right - left + 1
+            height = bottom - top + 1
+    except Exception, e:
+        warnings.warn("Could not get terminal size due to exception.\n%s: %s" 
+            % (type(e).__name__, e))
     # Windows consoles appear to treat the \n as a character.
     width -= 1
     return width, height
