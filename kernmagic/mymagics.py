@@ -412,11 +412,11 @@ def magic_print_methods(self, arg):
         print utils.columnize(all)
 
 
+@magic_arguments()
 def magic_replace_context(self, parameter_s=''):
     """Replace the IPython namespace with a DataContext.
 
-    It can be accessed as _ip.user_ns .
-    """
+"""
     ip = ipapi.get()
     if hasattr(self.user_ns, 'subcontext'):
         # Toggle back to plain dict.
