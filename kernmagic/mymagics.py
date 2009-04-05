@@ -329,6 +329,8 @@ def magic_pop_err(self, arg):
 
 
 @magic_arguments()
+@argument('-n', '--no-group', dest='group', action='store_false',
+    help="Do not group by the defining class.")
 @argument('variable', help="the name of the variable")
 def magic_print_traits(self, arg):
     """ Print the traits of an object.
@@ -356,15 +358,29 @@ def magic_print_traits(self, arg):
         else:
             pvalue = pretty(value)
         key_values.append((name, pvalue))
-    text = utils.wrap_key_values(key_values)
-    print text
+    if not args.group:
+        print utils.wrap_key_values(key_values)
+    else:
+        trait_values = dict(key_values)
+        for cls in inspect.getmro(type(obj))[::-1]:
+            if hasattr(cls, 'class_trait_names'):
+                local_key_values = []
+                for trait in cls.class_trait_names():
+                    if trait in trait_values:
+                        local_key_values.append((trait, trait_values.pop(trait)))
+                if local_key_values:
+                    name = getattr(cls, '__name__', repr(cls))
+                    print name
+                    print '-'*len(name)
+                    print utils.wrap_key_values(sorted(local_key_values))
+                    print
 
 
 @magic_arguments()
-@argument('-g', '--group', action='store_true',
-    help="Group by the defining class.")
-@argument('-p', '--public', action='store_true',
-    help="Only display public methods that do not being with an underscore.")
+@argument('-n', '--no-group', dest='group', action='store_false',
+    help="Do not group by the defining class.")
+@argument('-p', '--private', action='store_true',
+    help="Also display private methods that begin with an underscore.")
 @argument('variable', help="The name of the variable.")
 def magic_print_methods(self, arg):
     """ Print the methods of an object or type.
@@ -382,13 +398,16 @@ def magic_print_methods(self, arg):
     for name, kind, defining, value in attrs:
         if kind not in ('method', 'class method', 'static method'):
             continue
-        if not args.public or not name.startswith('_'):
+        if args.private or not name.startswith('_'):
             grouped[defining].append(name)
             all.append(name)
     if args.group:
         for cls in inspect.getmro(klass)[::-1]:
-            print '%s:' % getattr(cls, '__name__', repr(cls))
-            print utils.columnize(grouped[cls])
+            if grouped[cls]:
+                name = getattr(cls, '__name__', repr(cls))
+                print name
+                print '-'*len(name)
+                print utils.columnize(grouped[cls])
     else:
         print utils.columnize(all)
 

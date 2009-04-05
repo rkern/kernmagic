@@ -65,6 +65,9 @@ def _terminal_size_unix():
 def wrap_key_values(key_values, sep=':', width=None):
     """ Format key-value pairs of strings.
     """
+    if not key_values:
+        # Early exit so we can assume at least one item later.
+        return ""
     if width is None:
         width = terminal_size()[0]
     max_key = max(len(k) for k,v in key_values)
