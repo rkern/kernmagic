@@ -1,0 +1,153 @@
+%fread [-e ENCODING] [-m MODE] variable filename
+
+Read text from a file into a variable.
+
+positional arguments:
+  variable              the name of the variable
+  filename              the filename to read from
+
+optional arguments:
+  -e ENCODING, --encoding ENCODING
+                        decode the text using this encoding [default: do not
+                        attempt to decode]
+  -m MODE, --mode MODE  the file mode to use when opening the file for reading
+
+--------------------------------------------------------------------------------
+
+%fwrite [-e ENCODING] [-m MODE] variable [filename]
+
+Write text out to a file.
+
+positional arguments:
+  variable              the name of the variable
+  filename              the filename to write [default: the variable's name]
+
+optional arguments:
+  -e ENCODING, --encoding ENCODING
+                        the encoding to use for unicode objects; no effect on
+                        str objects [default: utf-8]
+  -m MODE, --mode MODE  the file mode to use when opening the file for writing
+
+--------------------------------------------------------------------------------
+
+%pop_err [-q]
+
+Pop the last set of numpy numerical error handling settings from the stack.
+
+optional arguments:
+  -q, --quiet  Do not print the new settings.
+
+--------------------------------------------------------------------------------
+
+%pop_print [-q]
+
+Pop the last set of print options from the stack and use them.
+
+optional arguments:
+  -q, --quiet  Do not print the new settings.
+
+--------------------------------------------------------------------------------
+
+%print_methods [-n] [-p] variable
+
+Print the methods of an object or type.
+
+positional arguments:
+  variable        The name of the variable.
+
+optional arguments:
+  -n, --no-group  Do not group by the defining class.
+  -p, --private   Also display private methods that begin with an underscore.
+
+--------------------------------------------------------------------------------
+
+%print_traits [-n] variable
+
+Print the traits of an object.
+
+positional arguments:
+  variable        the name of the variable
+
+optional arguments:
+  -n, --no-group  Do not group by the defining class.
+
+--------------------------------------------------------------------------------
+
+%push_err [-a {ignore,warn,raise,call,log}] [-d
+                {ignore,warn,raise,call,log}] [-o
+                {ignore,warn,raise,call,log}] [-u
+                {ignore,warn,raise,call,log}] [-i
+                {ignore,warn,raise,call,log}] [-f CALL_FUNC] [-n] [-q]
+
+Set numpy numerical error handling via a stack.
+
+optional arguments:
+  -a {ignore,warn,raise,call,log}, --all {ignore,warn,raise,call,log}
+                        Set the mode for all kinds of errors.
+  -d {ignore,warn,raise,call,log}, --divide {ignore,warn,raise,call,log}
+                        Set the mode for divide-by-zero errors.
+  -o {ignore,warn,raise,call,log}, --over {ignore,warn,raise,call,log}
+                        Set the mode for overflow errors.
+  -u {ignore,warn,raise,call,log}, --under {ignore,warn,raise,call,log}
+                        Set the mode for underflow errors.
+  -i {ignore,warn,raise,call,log}, --invalid {ignore,warn,raise,call,log}
+                        Set the mode for invalid domain errors (i.e. NaNs).
+  -f CALL_FUNC, --call-func CALL_FUNC
+                        A function for use with the 'call' mode or a file-like
+                        object with a .write() method for use with the 'log'
+                        mode.
+  -n, --no-call-func    Remove any existing call function.
+  -q, --quiet           Do not print the new settings.
+
+--------------------------------------------------------------------------------
+
+%push_print [-p PRECISION] [-t THRESHOLD] [-e EDGEITEMS] [-l LINEWIDTH]
+                  [-s] [-S] [-n NANSTR] [-i INFSTR] [-q]
+
+Set numpy array printing options by pushing onto a stack.
+
+optional arguments:
+  -p PRECISION, --precision PRECISION
+                        Number of digits of precision for floating point
+                        output.
+  -t THRESHOLD, --threshold THRESHOLD
+                        Total number of array elements which trigger
+                        summarization rather than a full repr. 0 disables
+                        thresholding.
+  -e EDGEITEMS, --edgeitems EDGEITEMS
+                        Number of array items in summary at beginning and end
+                        of each dimension.
+  -l LINEWIDTH, --linewidth LINEWIDTH
+                        The number of characters per line for the purpose of
+                        inserting line breaks.
+  -s, --suppress        Suppress the printing of small floating point values.
+  -S, --no-suppress     Do not suppress the printing of small floating point
+                        values.
+  -n NANSTR, --nanstr NANSTR
+                        String representation of floating point not-a-number.
+  -i INFSTR, --infstr INFSTR
+                        String representation of floating point infinity.
+  -q, --quiet           Do not print the new settings.
+
+--------------------------------------------------------------------------------
+
+%replace_context
+
+Replace the IPython namespace with a DataContext.
+
+--------------------------------------------------------------------------------
+
+%sym [-r] [-i] [-c] [-f] [-q] names [names ...]
+
+Create Sympy variables easily.
+
+positional arguments:
+  names           the names of the variables to create
+
+optional arguments:
+  -r, --real      symbols are real variables
+  -i, --int       symbols are integer variables
+  -c, --complex   symbols are complex variables
+  -f, --function  symbols are functions
+  -q, --quiet     do not print out verbose information
+
