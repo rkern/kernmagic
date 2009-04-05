@@ -1,3 +1,16 @@
+""" Robert Kern's magics for IPython.
+
+To enable these, put the following into your ~/.ipython/ipy_user_conf.py ::
+
+    import kernmagic
+    kernmagic.activate()
+
+    # Some shortened aliases are provided for convenience, but you need to have
+    # the following line to activate them, too.
+    kernmagic.activate_alias()
+"""
+
+
 def activate(*args):
     """ Activate the given magics, all of them by default.
     """
