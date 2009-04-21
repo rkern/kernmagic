@@ -347,13 +347,14 @@ def magic_print_traits(self, arg):
     if not hasattr(obj, 'trait_names'):
         raise ipapi.UsageError('variable %r is not a HasTraits instance' % args.variable)
     from enthought.traits.has_traits import not_event
+    from enthought.traits.trait_errors import TraitError
     names = obj.trait_names(type=not_event)
     names.sort()
     key_values = []
     for name in names:
         try:
             value = getattr(obj, name)
-        except AttributeError:
+        except (AttributeError, TraitError), e:
             pvalue = '<undefined>'
         else:
             pvalue = pretty(value)
