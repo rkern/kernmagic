@@ -4,7 +4,11 @@ handling.
 
 import shlex
 
-from IPython.external import argparse
+try:
+    from IPython.external import argparse
+except ImportError:
+    # Fall back onto a third-party installation of argparse.
+    import argparse
 from IPython import ipapi
 
 
