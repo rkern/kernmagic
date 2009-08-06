@@ -6,12 +6,15 @@ These use argparse to conveniently handle argument parsing.
 """
 
 from collections import defaultdict
+from cStringIO import StringIO
+import doctest
 import inspect
 import os
 import sys
 import types
 
-from IPython import ipapi
+from IPython import demo, ipapi
+from IPython.genutils import Term
 
 from magic_arguments import argument, magic_arguments, parse_argstring
 import utils
@@ -430,9 +433,102 @@ def magic_replace_context(self, parameter_s=''):
     self.user_ns = ip.user_ns = user_ns
 
 
+class DoctestDemo(demo.IPythonDemo):
+    """ Extract doctest blocks for demo purposes.
+    """
+
+    def reset(self):
+        """Reset the namespace and seek pointer to restart the demo"""
+        self.user_ns     = {}
+        self.user_ns.update(self.ip_ns)
+        self.finished    = False
+        self.block_index = 0
+
+    def reload(self):
+        """ Reload source and initialize state.
+        """
+        docstring = self.fobj.read()
+        parser = doctest.DocTestParser()
+        parser = parser.parse(docstring)
+        self.preludes = {}
+        self.wants = {}
+        self.src_blocks = []
+        index = 0
+        for item in parser:
+            if isinstance(item, basestring):
+                self.preludes[index] = item
+            else:
+                self.src_blocks.append(item.source)
+                if item.want != '':
+                    self.wants[index] = item.want
+                index += 1
+        self.src = ''.join(self.src_blocks)
+        nblocks = len(self.src_blocks)
+        self._silent    = [False]*nblocks
+        self._auto      = [False]*nblocks
+        self.auto_all   = False
+        self.nblocks    = nblocks
+
+        # also build syntax-highlighted source
+        self.src_blocks_colored = map(self.ip_colorize,self.src_blocks)
+
+        # ensure clean namespace and seek offset
+        self.reset()
+
+    def runlines(self,source):
+        """ Execute a string with one or more lines of code.
+        """
+        code = compile(source, '<string>', 'single')
+        oldhook = sys.displayhook
+        sys.displayhook = sys.__displayhook__
+        try:
+            exec code in self.user_ns
+        finally:
+            sys.displayhook = oldhook
+
+    def show(self,index=None):
+        """ Show a single block on screen.
+        """
+        index = self._get_index(index)
+        if index is None:
+            return
+        if index in self.preludes:
+            print >>Term.cout, self.preludes[index]
+        lines = self.src_blocks_colored[index].splitlines()
+        lines[0] = '>>> ' + lines[0]
+        for i in range(1, len(lines)):
+            lines[i] = '... ' + lines[i]
+        print >>Term.cout, ''.join(lines)
+        if index in self.wants:
+            print >>Term.cout, self.wants[index]
+        sys.stdout.flush()
+
+    # These methods are meant to be overridden by subclasses who may wish to
+    # customize the behavior of of their demos.
+    def marquee(self,txt='',width=78,mark='*'):
+        """ Return the input string formatted nicely.
+        """
+        return txt
+
+
+@magic_arguments()
+@argument('object', help="The name of the object.")
+def magic_run_examples(self, arg):
+    """ Run doctest-format examples in an object's docstring.
+
+"""
+    args = parse_argstring(magic_run_examples, arg)
+    obj = get_variable(self, args.object)
+    if not hasattr(obj, '__doc__'):
+        raise ipapi.UsageError("%s does not have a docstring" % args.object)
+    d = DoctestDemo(StringIO(obj.__doc__))
+    while not d.finished:
+        d()
+
+
 __all__ = ['magic_fread', 'magic_fwrite', 'magic_sym', 'magic_push_print',
     'magic_pop_print', 'magic_push_err', 'magic_pop_err', 'magic_print_traits',
-    'magic_replace_context', 'magic_print_methods']
+    'magic_replace_context', 'magic_print_methods', 'magic_run_examples']
 
 aliases = dict(
     magic_print_traits='pt',
