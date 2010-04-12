@@ -475,12 +475,19 @@ class DoctestDemo(demo.IPythonDemo):
         # ensure clean namespace and seek offset
         self.reset()
 
+    def displayhook(self, obj):
+        """ Simple displayhook.
+        """
+        if obj is not None:
+            print >>Term.cout, 'output:'
+            print >>Term.cout, repr(obj)
+
     def runlines(self,source):
         """ Execute a string with one or more lines of code.
         """
         code = compile(source, '<string>', 'single')
         oldhook = sys.displayhook
-        sys.displayhook = sys.__displayhook__
+        sys.displayhook = self.displayhook
         try:
             exec code in self.user_ns
         finally:
