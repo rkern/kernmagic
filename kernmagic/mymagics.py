@@ -532,10 +532,41 @@ def magic_run_examples(self, arg):
     while not d.finished:
         d()
 
+@magic_arguments()
+@argument('-d', '--dump', action='store_true', help="Dump the current sources.")
+@argument('-r', '--revert', action='store_true',
+    help="Revert the function/method to its original implementation.")
+@argument('function', nargs='?', help="The name of the function/method to edit in-place.")
+def magic_inplace(self, arg):
+    """ Edit the source of a function or method and replace the original
+    implementation.
+
+"""
+    from kernmagic.inplace_edit import Inplace
+    args = parse_argstring(magic_inplace, arg)
+
+    inplace = Inplace.singleton(self.shell)
+    if args.function is None:
+        # Check for commands.
+        if args.dump:
+            inplace.dump_current_source()
+        elif args.revert:
+            print >>Term.cout, "Reverting all modified functions."
+            inplace.revert_all()
+        return
+
+    function = get_variable(self, args.function)
+    if args.revert:
+        inplace.revert(function)
+    else:
+        inplace.edit_object(function)
+
+
 
 __all__ = ['magic_fread', 'magic_fwrite', 'magic_sym', 'magic_push_print',
     'magic_pop_print', 'magic_push_err', 'magic_pop_err', 'magic_print_traits',
-    'magic_replace_context', 'magic_print_methods', 'magic_run_examples']
+    'magic_replace_context', 'magic_print_methods', 'magic_run_examples',
+    'magic_inplace']
 
 aliases = dict(
     magic_print_traits='pt',
