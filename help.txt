@@ -30,6 +30,20 @@ optional arguments:
 
 --------------------------------------------------------------------------------
 
+%inplace [-d] [-r] [function]
+
+Edit the source of a function or method and replace the original
+implementation.
+
+positional arguments:
+  function      The name of the function/method to edit in-place.
+
+optional arguments:
+  -d, --dump    Dump the current sources.
+  -r, --revert  Revert the function/method to its original implementation.
+
+--------------------------------------------------------------------------------
+
 %pop_err [-q]
 
 Pop the last set of numpy numerical error handling settings from the stack.
@@ -134,6 +148,15 @@ optional arguments:
 %replace_context
 
 Replace the IPython namespace with a DataContext.
+
+--------------------------------------------------------------------------------
+
+%run_examples object
+
+Run doctest-format examples in an object's docstring.
+
+positional arguments:
+  object  The name of the object.
 
 --------------------------------------------------------------------------------
 
