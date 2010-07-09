@@ -13,11 +13,12 @@ import os
 import sys
 import types
 
-from IPython import demo, ipapi
-from IPython.genutils import Term
+from IPython.lib import demo
+from IPython.core.error import UsageError
+from IPython.utils.io import Term
 
-from magic_arguments import argument, magic_arguments, parse_argstring
-import utils
+from .magic_arguments import argument, magic_arguments, parse_argstring
+from . import utils
 
 
 def get_variable(ipshell, variable):
@@ -27,7 +28,7 @@ def get_variable(ipshell, variable):
         try:
             obj = eval(variable, ipshell.user_global_ns, ipshell.user_ns)
         except Exception, e:
-            raise ipapi.UsageError('variable %r not in namespace' % variable)
+            raise UsageError('variable %r not in namespace' % variable)
     else:
         obj = ipshell.user_ns[variable]
     return obj
@@ -106,7 +107,7 @@ def magic_sym(self, arg):
     try:
         import sympy
     except ImportError:
-        raise ipapi.UsageError("could not import sympy.")
+        raise UsageError("could not import sympy.")
     args = parse_argstring(magic_sym, arg)
     factory = sympy.Symbol
     kwds = {}
@@ -174,7 +175,7 @@ def magic_push_print(self, arg):
     try:
         import numpy
     except ImportError:
-        raise ipapi.UsageError("could not import numpy.")
+        raise UsageError("could not import numpy.")
     args = parse_argstring(magic_push_print, arg)
     kwds = {}
     if args.precision is not None:
@@ -213,7 +214,7 @@ def magic_pop_print(self, arg):
     try:
         import numpy
     except ImportError:
-        raise ipapi.UsageError("could not import numpy.")
+        raise UsageError("could not import numpy.")
     args = parse_argstring(magic_pop_print, arg)
 
     stack = getattr(self, '_numpy_printoptions_stack', [])
@@ -264,7 +265,7 @@ def magic_push_err(self, arg):
     try:
         import numpy
     except ImportError:
-        raise ipapi.UsageError("could not import numpy.")
+        raise UsageError("could not import numpy.")
 
     sentinel = object()
 
@@ -277,14 +278,14 @@ def magic_push_err(self, arg):
             kwds[key] = value
     if args.call_func is not None:
         if args.no_call_func:
-            raise ipapi.UsageError("You cannot specify both a --call-func and "
+            raise UsageError("You cannot specify both a --call-func and "
                 "--no-call-func at the same time.")
         global_ns = self.shell.user_global_ns
         local_ns = self.shell.user_ns
         try:
             errcall = eval(args.call_func, global_ns, local_ns)
         except Exception, e:
-            raise ipapi.UsageError('Could not find function %r.\n%s: %s' % 
+            raise UsageError('Could not find function %r.\n%s: %s' % 
                 (args.call_func, e.__class__.__name__, e))
     elif args.no_call_func:
         errcall = None
@@ -296,7 +297,7 @@ def magic_push_err(self, arg):
         try:
             numpy.seterrcall(errcall)
         except ValueError, e:
-            raise ipapi.UsageError(str(e))
+            raise UsageError(str(e))
     stack = getattr(self, '_numpy_err_stack', [])
     stack.append((old_options, old_errcall))
     self._numpy_err_stack = stack
@@ -315,7 +316,7 @@ def magic_pop_err(self, arg):
     try:
         import numpy
     except ImportError:
-        raise ipapi.UsageError("could not import numpy.")
+        raise UsageError("could not import numpy.")
     args = parse_argstring(magic_pop_err, arg)
 
     stack = getattr(self, '_numpy_err_stack', [])
@@ -348,7 +349,7 @@ def magic_print_traits(self, arg):
 
     obj = get_variable(self, args.variable)
     if not hasattr(obj, 'trait_names'):
-        raise ipapi.UsageError('variable %r is not a HasTraits instance' % args.variable)
+        raise UsageError('variable %r is not a HasTraits instance' % args.variable)
     from enthought.traits.has_traits import not_event
     from enthought.traits.trait_errors import TraitError
     names = obj.trait_names(type=not_event)
@@ -421,7 +422,6 @@ def magic_replace_context(self, parameter_s=''):
     """Replace the IPython namespace with a DataContext.
 
 """
-    ip = ipapi.get()
     if hasattr(self.user_ns, 'subcontext'):
         # Toggle back to plain dict.
         user_ns = self.user_ns.subcontext
@@ -430,7 +430,7 @@ def magic_replace_context(self, parameter_s=''):
         user_ns = DataContext(subcontext=self.user_ns)
         # Keep the plain dict as the globals.
         self.user_global_ns = self.user_ns
-    self.user_ns = ip.user_ns = user_ns
+    self.user_ns = user_ns
 
 
 class DoctestDemo(demo.IPythonDemo):
@@ -527,7 +527,7 @@ def magic_run_examples(self, arg):
     args = parse_argstring(magic_run_examples, arg)
     obj = get_variable(self, args.object)
     if not hasattr(obj, '__doc__'):
-        raise ipapi.UsageError("%s does not have a docstring" % args.object)
+        raise UsageError("%s does not have a docstring" % args.object)
     d = DoctestDemo(StringIO(obj.__doc__))
     while not d.finished:
         d()

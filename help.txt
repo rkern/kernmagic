@@ -87,11 +87,11 @@ optional arguments:
 
 --------------------------------------------------------------------------------
 
-%push_err [-a {ignore,warn,raise,call,log}] [-d
-                {ignore,warn,raise,call,log}] [-o
-                {ignore,warn,raise,call,log}] [-u
-                {ignore,warn,raise,call,log}] [-i
-                {ignore,warn,raise,call,log}] [-f CALL_FUNC] [-n] [-q]
+%push_err [-a {ignore,warn,raise,call,log}]
+                [-d {ignore,warn,raise,call,log}]
+                [-o {ignore,warn,raise,call,log}]
+                [-u {ignore,warn,raise,call,log}]
+                [-i {ignore,warn,raise,call,log}] [-f CALL_FUNC] [-n] [-q]
 
 Set numpy numerical error handling via a stack.
 

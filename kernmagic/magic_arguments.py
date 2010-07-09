@@ -9,7 +9,7 @@ try:
 except ImportError:
     # Fall back onto a third-party installation of argparse.
     import argparse
-from IPython import ipapi
+from IPython.core.error import UsageError
 
 
 class MagicArgumentParser(argparse.ArgumentParser):
@@ -38,7 +38,7 @@ class MagicArgumentParser(argparse.ArgumentParser):
     def error(self, message):
         """ Raise a catchable error instead of exiting.
         """
-        raise ipapi.UsageError(message)
+        raise UsageError(message)
 
     def parse_argstring(self, argstring):
         """ Split a string into an argument list and parse that argument list.
@@ -93,17 +93,6 @@ def real_name(magic_func):
     return arg_name
 
 
-def add_exposer(magic_func):
-    """ Add a function to the magic which will expose it.
-    """
-    def expose(ip=None):
-        if ip is None:
-            from IPython import ipapi
-            ip = ipapi.get()
-        ip.expose_magic(real_name(magic_func), magic_func)
-    magic_func.expose = expose
-
-
 class ArgDecorator(object):
     """ Base class for decorators to add ArgumentParser information to a method.
     """
@@ -112,7 +101,6 @@ class ArgDecorator(object):
         if not getattr(func, 'has_arguments', False):
             func.has_arguments = True
             func.decorators = []
-            add_exposer(func)
         func.decorators.append(self)
         return func
 
@@ -134,7 +122,6 @@ class magic_arguments(ArgDecorator):
         if not getattr(func, 'has_arguments', False):
             func.has_arguments = True
             func.decorators = []
-            add_exposer(func)
         if self.name is not None:
             func.argcmd_name = self.name
         # This should be the first decorator in the list of decorators, thus the
