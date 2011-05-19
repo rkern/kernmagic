@@ -16,8 +16,8 @@ import types
 from IPython.lib import demo
 from IPython.core.error import UsageError
 from IPython.utils import io
+from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
 
-from .magic_arguments import argument, magic_arguments, parse_argstring
 from . import utils
 
 
