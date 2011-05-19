@@ -15,7 +15,7 @@ import types
 
 from IPython.lib import demo
 from IPython.core.error import UsageError
-from IPython.utils.io import Term
+from IPython.utils import io
 
 from .magic_arguments import argument, magic_arguments, parse_argstring
 from . import utils
@@ -479,8 +479,8 @@ class DoctestDemo(demo.IPythonDemo):
         """ Simple displayhook.
         """
         if obj is not None:
-            print >>Term.cout, 'output:'
-            print >>Term.cout, repr(obj)
+            print >>io.stdout, 'output:'
+            print >>io.stdout, repr(obj)
 
     def runlines(self,source):
         """ Execute a string with one or more lines of code.
@@ -500,14 +500,14 @@ class DoctestDemo(demo.IPythonDemo):
         if index is None:
             return
         if index in self.preludes:
-            print >>Term.cout, self.preludes[index]
+            print >>io.stdout, self.preludes[index]
         lines = self.src_blocks_colored[index].splitlines()
         lines[0] = '>>> ' + lines[0]
         for i in range(1, len(lines)):
             lines[i] = '... ' + lines[i]
-        print >>Term.cout, ''.join(lines)
+        print >>io.stdout, ''.join(lines)
         if index in self.wants:
-            print >>Term.cout, self.wants[index]
+            print >>io.stdout, self.wants[index]
         sys.stdout.flush()
 
     # These methods are meant to be overridden by subclasses who may wish to
@@ -551,7 +551,7 @@ def magic_inplace(self, arg):
         if args.dump:
             inplace.dump_current_source()
         elif args.revert:
-            print >>Term.cout, "Reverting all modified functions."
+            print >>io.stdout, "Reverting all modified functions."
             inplace.revert_all()
         return
 
