@@ -10,8 +10,8 @@ import tempfile
 import textwrap
 import weakref
 
-from IPython.genutils import Term
-from IPython import ipapi
+from IPython.utils import io
+from IPython.core.error import TryNext
 
 
 def as_func(funcmeth):
@@ -40,8 +40,7 @@ class Inplace(object):
         """
         if not hasattr(shell, '_inplace_singleton'):
             shell._inplace_singleton = cls(shell)
-            ip = ipapi.get()
-            ip.set_hook('shutdown_hook', shell._inplace_singleton.shutdown_hook)
+            shell.set_hook('shutdown_hook', shell._inplace_singleton.shutdown_hook)
         return shell._inplace_singleton
 
     def shutdown_hook(self, other):
@@ -49,7 +48,7 @@ class Inplace(object):
         """
         if self.current_sources:
             self.dump_current_source()
-        raise ipapi.TryNext()
+        raise TryNext()
 
     def monkeypatch(self, original, new):
         """ Monkeypatch a new function.
@@ -145,11 +144,11 @@ class Inplace(object):
             filename = inspect.getfile(original)
             files_lines_sources.append((filename, lineno, source))
         files_lines_sources.sort()
-        print >>Term.cout, "The following edits have been applied:"
-        print >>Term.cout, ""
+        print >>io.stdout, "The following edits have been applied:"
+        print >>io.stdout, ""
         for fn, lineno, source in files_lines_sources:
-            print >>Term.cout, '%s:%s' % (fn, lineno)
-            print >>Term.cout, ""
-            print >>Term.cout, source
-            print >>Term.cout, ""
-            print >>Term.cout, ""
+            print >>io.stdout, '%s:%s' % (fn, lineno)
+            print >>io.stdout, ""
+            print >>io.stdout, source
+            print >>io.stdout, ""
+            print >>io.stdout, ""
