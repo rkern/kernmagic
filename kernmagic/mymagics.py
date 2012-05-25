@@ -126,6 +126,7 @@ def magic_sym(self, arg):
         else:
             print 'Adding variables:'
     for name in args.names:
+        name = name.encode('ascii')
         var = factory(name, **kwds)
         self.user_ns[name] = var
         if not args.quiet:
