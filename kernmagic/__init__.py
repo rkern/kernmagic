@@ -2,6 +2,12 @@
 """
 
 
+def _define_magic(ip, *args, **kwds):
+    """ Compatibility wrapper for defining magics.
+    """
+    shell = getattr(ip, 'shell', ip)
+    shell.define_magic(*args, **kwds)
+
 def activate(ip, *args):
     """ Activate the given magics, all of them by default.
     """
@@ -13,7 +19,7 @@ def activate(ip, *args):
         if not name.startswith('magic_'):
             continue
         magic_name = name[len('magic_'):]
-        ip.shell.define_magic(magic_name, getattr(mymagics, name))
+        _define_magic(ip, magic_name, getattr(mymagics, name))
 
 def activate_aliases(ip, *args):
     """ Activate the requests aliases, all of them by default.
@@ -24,7 +30,7 @@ def activate_aliases(ip, *args):
         args = mymagics.aliases.keys()
     for name in args:
         magic_name = mymagics.aliases[name]
-        ip.shell.define_magic(magic_name, getattr(mymagics, name))
+        _define_magic(ip, magic_name, getattr(mymagics, name))
 
 def load_ipython_extension(ip):
     activate(ip)
