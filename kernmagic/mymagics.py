@@ -21,9 +21,15 @@ from IPython.core.magic_arguments import argument, magic_arguments, parse_argstr
 from . import utils
 
 
+def get_shell(ipshell):
+    """ For forward compatibility with 0.13+.
+    """
+    return getattr(ipshell, 'shell', ipshell)
+
 def get_variable(ipshell, variable):
     """ Get a variable from the shell's namespace.
     """
+    ipshell = get_shell(ipshell)
     if variable not in ipshell.user_ns:
         try:
             obj = eval(variable, ipshell.user_global_ns, ipshell.user_ns)
@@ -84,7 +90,7 @@ def magic_fread(self, arg):
     if args.encoding:
         contents = contents.decode(args.encoding)
 
-    self.user_ns[args.variable] = contents
+    get_shell(self).user_ns[args.variable] = contents
 
 
 @magic_arguments()
@@ -128,7 +134,7 @@ def magic_sym(self, arg):
     for name in args.names:
         name = name.encode('ascii')
         var = factory(name, **kwds)
-        self.user_ns[name] = var
+        get_shell(self).user_ns[name] = var
         if not args.quiet:
             print '  %s' % name
 
@@ -281,8 +287,8 @@ def magic_push_err(self, arg):
         if args.no_call_func:
             raise UsageError("You cannot specify both a --call-func and "
                 "--no-call-func at the same time.")
-        global_ns = self.shell.user_global_ns
-        local_ns = self.shell.user_ns
+        global_ns = get_shell(self).user_global_ns
+        local_ns = get_shell(self).user_ns
         try:
             errcall = eval(args.call_func, global_ns, local_ns)
         except Exception, e:
@@ -423,15 +429,16 @@ def magic_replace_context(self, parameter_s=''):
     """Replace the IPython namespace with a DataContext.
 
 """
-    if hasattr(self.user_ns, 'subcontext'):
+    ipshell = get_shell(self)
+    if hasattr(ipshell.user_ns, 'subcontext'):
         # Toggle back to plain dict.
-        user_ns = self.user_ns.subcontext
+        user_ns = ipshell.user_ns.subcontext
     else:
         from enthought.contexts.api import DataContext
-        user_ns = DataContext(subcontext=self.user_ns)
+        user_ns = DataContext(subcontext=ipshell.user_ns)
         # Keep the plain dict as the globals.
-        self.user_global_ns = self.user_ns
-    self.user_ns = user_ns
+        ipshell.user_global_ns = ipshell.user_ns
+    ipshell.user_ns = user_ns
 
 
 class DoctestDemo(demo.IPythonDemo):
@@ -546,7 +553,7 @@ def magic_inplace(self, arg):
     from kernmagic.inplace_edit import Inplace
     args = parse_argstring(magic_inplace, arg)
 
-    inplace = Inplace.singleton(self.shell)
+    inplace = Inplace.singleton(get_shell(self))
     if args.function is None:
         # Check for commands.
         if args.dump:
