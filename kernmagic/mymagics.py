@@ -357,8 +357,8 @@ def magic_print_traits(self, arg):
     obj = get_variable(self, args.variable)
     if not hasattr(obj, 'trait_names'):
         raise UsageError('variable %r is not a HasTraits instance' % args.variable)
-    from enthought.traits.has_traits import not_event
-    from enthought.traits.trait_errors import TraitError
+    from traits.has_traits import not_event
+    from traits.trait_errors import TraitError
     names = obj.trait_names(type=not_event)
     names.sort()
     key_values = []
@@ -434,7 +434,7 @@ def magic_replace_context(self, parameter_s=''):
         # Toggle back to plain dict.
         user_ns = ipshell.user_ns.subcontext
     else:
-        from enthought.contexts.api import DataContext
+        from codetools.contexts.api import DataContext
         user_ns = DataContext(subcontext=ipshell.user_ns)
         # Keep the plain dict as the globals.
         ipshell.user_global_ns = ipshell.user_ns
