@@ -518,14 +518,11 @@ class KernMagics(Magics):
             print(utils.columnize(all))
 
     @magic_arguments()
-    #@line_magic
+    @line_magic
     def replace_context(self, parameter_s=''):
         """Replace the IPython namespace with a DataContext.
 
-        Not working in newer IPythons, yet.
-
     """
-        raise NotImplementedError("Not supported in recent IPythons yet")
         ipshell = self.shell
         if hasattr(ipshell.user_ns, 'subcontext'):
             # Toggle back to plain dict.
@@ -533,8 +530,6 @@ class KernMagics(Magics):
         else:
             from codetools.contexts.api import DataContext
             user_ns = DataContext(subcontext=ipshell.user_ns)
-            # Keep the plain dict as the globals.
-            ipshell.user_global_ns = ipshell.user_ns
         ipshell.user_ns = user_ns
 
     @magic_arguments()
