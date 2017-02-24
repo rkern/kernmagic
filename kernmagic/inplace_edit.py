@@ -1,5 +1,6 @@
-from __future__ import with_statement
+from __future__ import print_function
 
+import atexit
 import hashlib
 import imp
 import inspect
@@ -40,10 +41,10 @@ class Inplace(object):
         """
         if not hasattr(shell, '_inplace_singleton'):
             shell._inplace_singleton = cls(shell)
-            shell.set_hook('shutdown_hook', shell._inplace_singleton.shutdown_hook)
+            atexit.register(shell._inplace_singleton.shutdown_hook)
         return shell._inplace_singleton
 
-    def shutdown_hook(self, other):
+    def shutdown_hook(self):
         """ The shutdown hook.
         """
         if self.current_sources:
@@ -89,19 +90,21 @@ class Inplace(object):
         mod = imp.new_module(name)
         # Supply the correct globals.
         mod.__dict__.update(original.func_globals)
-        linecache.cache[filename] = (len(new_source), None,
+        linecache.cache[filename] = (
+            len(new_source), None,
             [x+'\n' for x in new_source.splitlines()], filename)
         code = compile(new_source, filename, 'exec')
         exec code in mod.__dict__, mod.__dict__
 
         new = getattr(mod, original.__name__, None)
         if new is None or not callable(new):
-            raise ValueError("There is no function %s in the user-edited source." % original.__name__)
+            raise ValueError(("There is no function %s in the user-edited "
+                              "source.") % original.__name__)
         sys.modules[name] = mod
 
         self.current_sources[as_func(original)] = new_source
         return new
-        
+
     def edit_object(self, original):
         """ Edit the source of the method or function.
         """
@@ -144,11 +147,8 @@ class Inplace(object):
             filename = inspect.getfile(original)
             files_lines_sources.append((filename, lineno, source))
         files_lines_sources.sort()
-        print >>io.stdout, "The following edits have been applied:"
-        print >>io.stdout, ""
+        print("The following edits have been applied:\n", file=io.stdout)
         for fn, lineno, source in files_lines_sources:
-            print >>io.stdout, '%s:%s' % (fn, lineno)
-            print >>io.stdout, ""
-            print >>io.stdout, source
-            print >>io.stdout, ""
-            print >>io.stdout, ""
+            print('%s:%s\n' % (fn, lineno), file=io.stdout)
+            print(source, file=io.stdout)
+            print("\n", file=io.stdout)

@@ -14,6 +14,7 @@ def terminal_size():
         width, height = _terminal_size_unix()
     return width, height
 
+
 def _terminal_size_win32():
     """ Return the width and height of the terminal on 32-bit Windows.
 
@@ -23,7 +24,7 @@ def _terminal_size_win32():
     """
     width = 80
     height = 25
-    
+
     try:
         from ctypes import windll, create_string_buffer
 
@@ -34,15 +35,17 @@ def _terminal_size_win32():
 
         if res:
             (bufx, bufy, curx, cury, wattr,
-             left, top, right, bottom, maxx, maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
+             left, top, right, bottom, maxx, maxy) = struct.unpack(
+                 "hhhhHhhhhhh", csbi.raw)
             width = right - left + 1
             height = bottom - top + 1
     except Exception, e:
-        warnings.warn("Could not get terminal size due to exception.\n%s: %s" 
-            % (type(e).__name__, e))
+        warnings.warn("Could not get terminal size due to exception.\n%s: %s"
+                      % (type(e).__name__, e))
     # Windows consoles appear to treat the \n as a character.
     width -= 1
     return width, height
+
 
 def _terminal_size_unix():
     """ Return the width and height of the terminal on UNIX-type systems.
@@ -52,9 +55,9 @@ def _terminal_size_unix():
     try:
         import fcntl
         import termios
-        height, width = struct.unpack('hh', fcntl.ioctl(sys.stdout.fileno(),
-            termios.TIOCGWINSZ, '1234'))
-    except (ImportError, AttributeError, IOError), e:
+        height, width = struct.unpack('hh', fcntl.ioctl(
+            sys.stdout.fileno(), termios.TIOCGWINSZ, '1234'))
+    except (ImportError, AttributeError, IOError):
         pass
     if width <= 0:
         width = os.environ.get('COLUMNS', -1)
@@ -75,7 +78,7 @@ def wrap_key_values(key_values, sep=':', width=None):
         return ""
     if width is None:
         width = terminal_size()[0]
-    max_key = max(len(k) for k,v in key_values)
+    max_key = max(len(k) for k, v in key_values)
     len_prefix = max_key + len(sep) + 1
     blank = ' ' * len_prefix
     lines = []
@@ -100,7 +103,7 @@ def columnize(strings, displaywidth=None):
     if not strings:
         return ''
     nonstrings = [i for i in range(len(strings))
-                    if not isinstance(strings[i], str)]
+                  if not isinstance(strings[i], str)]
     if nonstrings:
         raise TypeError("Not strings: %r" % (nonstrings,))
     size = len(strings)
@@ -146,4 +149,3 @@ def columnize(strings, displaywidth=None):
         lines.append('%s\n' % str('  '.join(texts)))
     formatted = ''.join(lines)
     return formatted
-
