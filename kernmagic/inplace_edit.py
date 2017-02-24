@@ -94,7 +94,7 @@ class Inplace(object):
             len(new_source), None,
             [x+'\n' for x in new_source.splitlines()], filename)
         code = compile(new_source, filename, 'exec')
-        exec code in mod.__dict__, mod.__dict__
+        exec(code, mod.__dict__, mod.__dict__)
 
         new = getattr(mod, original.__name__, None)
         if new is None or not callable(new):

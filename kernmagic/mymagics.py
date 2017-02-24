@@ -105,7 +105,7 @@ class DoctestDemo(demo.IPythonDemo):
         oldhook = sys.displayhook
         sys.displayhook = self.displayhook
         try:
-            exec code in self.user_ns
+            exec(code, self.user_ns)
         finally:
             sys.displayhook = oldhook
 
