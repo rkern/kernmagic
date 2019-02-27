@@ -39,7 +39,7 @@ def _terminal_size_win32():
                  "hhhhHhhhhhh", csbi.raw)
             width = right - left + 1
             height = bottom - top + 1
-    except Exception, e:
+    except Exception as e:
         warnings.warn("Could not get terminal size due to exception.\n%s: %s"
                       % (type(e).__name__, e))
     # Windows consoles appear to treat the \n as a character.

@@ -4,7 +4,10 @@
 from __future__ import print_function
 
 from collections import defaultdict
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 import doctest
 import inspect
 import os
@@ -395,7 +398,7 @@ class KernMagics(Magics):
         if errcall is not sentinel:
             try:
                 numpy.seterrcall(errcall)
-            except ValueError, e:
+            except ValueError as e:
                 raise UsageError(str(e))
         stack = getattr(self, '_numpy_err_stack', [])
         stack.append((old_options, old_errcall))
