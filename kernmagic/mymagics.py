@@ -497,7 +497,7 @@ class KernMagics(Magics):
     """
         args = parse_argstring(self.print_methods, arg)
         obj = self.get_variable(args.variable)
-        if not isinstance(obj, (type, types.ClassType)):
+        if not isinstance(obj, type):
             klass = type(obj)
         else:
             klass = obj
