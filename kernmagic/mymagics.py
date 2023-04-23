@@ -4,11 +4,9 @@
 from __future__ import print_function
 
 from collections import defaultdict
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
+from io import StringIO
 import doctest
+import importlib
 import inspect
 import os
 import sys
@@ -582,3 +580,16 @@ class KernMagics(Magics):
             inplace.revert(function)
         else:
             inplace.edit_object(function)
+
+    @magic_arguments()
+    @argument('modules', nargs='+', metavar='MODULE',
+              help="module or modules to reload")
+    @line_magic
+    def reload(self, arg):
+        """ Reload a module.
+
+    """
+        args = parse_argstring(self.reload, arg)
+        for name in args.modules:
+            mod = importlib.import_module(name)
+            importlib.reload(mod)
